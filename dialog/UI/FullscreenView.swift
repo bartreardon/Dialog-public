@@ -8,23 +8,14 @@
 import Foundation
 import SwiftUI
 import MarkdownUI
-
-extension Color {
-    init(hex: UInt, alpha: Double = 1) {
-        self.init(
-            .sRGB,
-            red: Double((hex >> 16) & 0xff) / 255,
-            green: Double((hex >> 08) & 0xff) / 255,
-            blue: Double((hex >> 00) & 0xff) / 255,
-            opacity: alpha
-        )
-    }
-}
-
+ 
 struct FullscreenView: View {
         
-    var TitleViewOption: String = CLOptionText(OptionName: CLOptions.titleOption, DefaultValue: appvars.titleDefault)
-    let messageContentOption: String = CLOptionText(OptionName: CLOptions.messageOption, DefaultValue: appvars.messageDefault)
+    var TitleViewOption: String //= CLOptionText(OptionName: CLOptions.titleOption, DefaultValue: appvars.titleDefault)
+    var messageContentOption: String //= CLOptionText(OptionName: CLOptions.messageOption, DefaultValue: appvars.messageDefault)
+    var BannerImageOption: String //= CLOptionText(OptionName: CLOptions.bannerImage)
+    var mainImage: String
+    var iconPresent: Bool = false
     
     let displayDetails:CGRect = NSScreen.main!.frame
     var windowHeight:CGFloat = 0
@@ -34,14 +25,12 @@ struct FullscreenView: View {
     var titleContentFontSize:CGFloat = appvars.titleFontSize*3
     var messageContentFontSize:CGFloat = 70 //need to add to appvars
     var iconImageScaleFactor:CGFloat = 1.5
-    var emptyStackPadding:CGFloat = 70
+    var emptyStackPadding:CGFloat
     var bannerPadding:CGFloat = 25
     var maxBannerHeight:CGFloat = 120
     var maxBannerWidth:CGFloat = 0
     var minScreenHeightToDisplayBanner:CGFloat = 1000
     var messageTextLineSpacing:CGFloat = 20
-    
-    var BannerImageOption: String = CLOptionText(OptionName: CLOptions.bannerImage)
     
     var useDefaultStyle = true
     var style: MarkdownStyle {
@@ -50,7 +39,19 @@ struct FullscreenView: View {
             : DefaultMarkdownStyle(font: .system(size: 20))
     }
      
-    init () {
+    init (title: String? = nil, message: String? = nil, banner: String? = nil, image: String? = nil, icon: String? = nil) {
+        TitleViewOption = title ?? ""
+        messageContentOption = message ?? ""
+        BannerImageOption = banner ?? ""
+        if icon != "" {
+            mainImage = icon ?? ""
+            iconPresent = true
+        } else if image != "" {
+            mainImage = image ?? ""
+        } else {
+            mainImage = ""
+        }
+        
         windowHeight = displayDetails.size.height
         windowWidth = displayDetails.size.width
         
@@ -60,6 +61,8 @@ struct FullscreenView: View {
         
         maxBannerWidth = windowWidth * 0.95
         maxBannerHeight = windowHeight * 0.10
+        
+        emptyStackPadding = windowHeight * 0.1
         
         if windowHeight < 1440 {
             messageContentFontSize = 40
@@ -76,6 +79,11 @@ struct FullscreenView: View {
             messageTextLineSpacing = 30
         }
                 
+        if CLOptionPresent(OptionName: CLOptions.mainImage) {
+            messageContentOption = CLOptionText(OptionName: CLOptions.mainImageCaption, DefaultValue: "")
+        }
+        
+        
         if appvars.titleFontColour == Color.primary {
             appvars.titleFontColour = Color.white
             
@@ -83,7 +91,7 @@ struct FullscreenView: View {
                 
     }
             
-    public func showFullScreen() {
+    public func showFullScreen(title: String? = nil, message: String? = nil, banner: String? = nil, image: String? = nil, icon: String? = nil) {
         
         var window: NSWindow!
         window = NSWindow(
@@ -93,7 +101,7 @@ struct FullscreenView: View {
            window.makeKeyAndOrderFront(self)
            window.isReleasedWhenClosed = false
            window.center()
-           window.contentView = NSHostingView(rootView: FullscreenView())
+           window.contentView = NSHostingView(rootView: FullscreenView(title: title, message: message, banner: banner, image: image, icon: icon))
 
        // open fullScreen mode
            let mainScreen: NSScreen = NSScreen.screens[0]
@@ -101,7 +109,7 @@ struct FullscreenView: View {
     }
     
     var body: some View {
-        
+                
         VStack{
             // banner image vstack
             if CLOptionPresent(OptionName: CLOptions.bannerImage) {
@@ -135,10 +143,10 @@ struct FullscreenView: View {
             }
             
             // icon and message vstack group
-            VStack {
+            //VStack {
                 // icon vstack
                 VStack {
-                    if CLOptionPresent(OptionName: CLOptions.iconOption) {
+                    if iconPresent {
                         IconView()
                     } else {
                         VStack{}.padding(emptyStackPadding)
@@ -150,6 +158,11 @@ struct FullscreenView: View {
                 
                 // message vstack
                 VStack() {
+                    
+                    //if CLOptionPresent(OptionName: CLOptions.mainImage) {
+                    if mainImage != "" {
+                        ImageView(imagePath: mainImage, caption: "")
+                    }
 
                     Text(messageContentOption)
                         .font(.system(size: messageContentFontSize))
@@ -163,9 +176,9 @@ struct FullscreenView: View {
                 }
                 .padding(10)
                 .frame(maxHeight: .infinity, alignment: .center) // setting to .infinity should make the message content take up the remainder of the screen
-            }
-            .padding(.horizontal, 20) // total padding for the icon/message group
-            .padding(.vertical, 50)
+            //}
+            //.padding(.horizontal, 20) // total padding for the icon/message group
+            //.padding(.vertical, 50)
         }
         .background(
                 //LinearGradient(gradient: Gradient(colors: [Color(hex: 0x0e539a), .black]), startPoint: .top, endPoint: .bottom)

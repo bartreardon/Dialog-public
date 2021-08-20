@@ -156,8 +156,12 @@ struct dialogApp: App {
         appvars.imageHeight = appvars.imageHeight * appvars.scaleFactor
         
         if CLOptionPresent(OptionName: CLOptions.fullScreenWindow) {
-            //appvars.overlayIconScale = appvars.overlayIconScale * 2
-            FullscreenView().showFullScreen()
+            FullscreenView().showFullScreen(title: CLOptionText(OptionName: CLOptions.titleOption, DefaultValue: appvars.titleDefault),
+                                            message: CLOptionText(OptionName: CLOptions.messageOption, DefaultValue: appvars.messageDefault),
+                                            banner: CLOptionText(OptionName: CLOptions.bannerImage),
+                                            image: CLOptionText(OptionName: CLOptions.mainImage),
+                                            icon: CLOptionText(OptionName: CLOptions.iconOption)
+            )
         }
     
     }
